@@ -1,32 +1,35 @@
 using Unity.Mathematics;
 using UnityEngine;
 
-public class ComputeKernel
+namespace Marsh
 {
-    private ComputeShader _shader;
-    private int _index;
-    private int3 _threadGroupSize;
-
-    public ComputeKernel(ComputeShader shader, string name)
+    public class ComputeKernel
     {
-        _shader = shader;
-        _index = shader.FindKernel(name);
-        shader.GetKernelThreadGroupSizes(_index, out uint x, out uint y, out uint z);
-        _threadGroupSize = new((int)x, (int)y, (int)z);
-    }
+        private ComputeShader _shader;
+        private int _index;
+        private int3 _threadGroupSize;
 
-    public void DispatchDivByThreadGroupSize(int x, int y, int z)
-    {
-        _shader.Dispatch(_index, x / _threadGroupSize.x, y / _threadGroupSize.y, z / _threadGroupSize.z);
-    }
+        public ComputeKernel(ComputeShader shader, string name)
+        {
+            _shader = shader;
+            _index = shader.FindKernel(name);
+            shader.GetKernelThreadGroupSizes(_index, out uint x, out uint y, out uint z);
+            _threadGroupSize = new((int)x, (int)y, (int)z);
+        }
 
-    public void SetBuffer(string name, ComputeBuffer buffer)
-    {
-        _shader.SetBuffer(_index, name, buffer);
-    }
+        public void DispatchDivByThreadGroupSize(int x, int y, int z)
+        {
+            _shader.Dispatch(_index, x / _threadGroupSize.x, y / _threadGroupSize.y, z / _threadGroupSize.z);
+        }
 
-    public void SetFloat3(string name, float3 v)
-    {
-        _shader.SetFloats(name, v.x, v.y, v.z);
+        public void SetBuffer(string name, ComputeBuffer buffer)
+        {
+            _shader.SetBuffer(_index, name, buffer);
+        }
+
+        public void SetFloat3(string name, float3 v)
+        {
+            _shader.SetFloats(name, v.x, v.y, v.z);
+        }
     }
 }
