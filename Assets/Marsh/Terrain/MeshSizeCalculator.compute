@@ -1,0 +1,25 @@
+#include "Common.hlsl"
+RWStructuredBuffer<int> _voxels;
+
+#pragma kernel CSMain
+[numthreads(4, 4, 4)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x == SLICE_WIDTH - 1 || id.y == SLICE_HEIGHT - 1 || id.z == SLICE_WIDTH - 1)
+    {
+        return;
+    }
+
+    uint triangulationIndex = CalculateTriangulationIndex(_voxels, id);
+    for (uint i = 0;; i++)
+    {
+        if (TRIANGULATION_TABLE[triangulationIndex][i] != -1)
+        {
+            _voxels.IncrementCounter();
+        }
+        else
+        {
+            break;
+        }
+    }
+}

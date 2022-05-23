@@ -1,0 +1,35 @@
+#include "Common.hlsl"
+RWStructuredBuffer<int> _voxels;
+RWStructuredBuffer<Triangle> _meshTriangles;
+
+#pragma kernel CSMain
+[numthreads(4, 4, 4)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x == SLICE_WIDTH - 1 || id.y == SLICE_HEIGHT - 1 || id.z == SLICE_WIDTH - 1)
+    {
+        return;
+    }
+
+    uint triangulationIndex = CalculateTriangulationIndex(_voxels, id);
+    for (uint i = 0;; i++)
+    {
+        int indices[] =
+        {
+            TRIANGULATION_TABLE[triangulationIndex][i + 2],
+            TRIANGULATION_TABLE[triangulationIndex][i + 1],
+            TRIANGULATION_TABLE[triangulationIndex][i + 0],
+        };
+
+        if (indices[0] == -1)
+        {
+            break;
+        }
+
+        float3 sliceOffset = float3(id.x, id.y, id.z);
+        uint triangleIndex = _voxels.IncrementCounter();
+        _meshTriangles[triangleIndex].abc[0] = EDGE_TABLE[indices[0]] + sliceOffset;
+        _meshTriangles[triangleIndex].abc[1] = EDGE_TABLE[indices[1]] + sliceOffset;
+        _meshTriangles[triangleIndex].abc[2] = EDGE_TABLE[indices[2]] + sliceOffset;
+    }
+}
