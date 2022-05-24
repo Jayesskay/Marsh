@@ -27,6 +27,7 @@ namespace Marsh
         {
             var lookDelta = _playerActions.Fly.Look.ReadValue<Vector2>() * _lookSensitivity;
             _rotation.x -= lookDelta.y;
+            _rotation.x = Mathf.Clamp(_rotation.x, -89.0f, 89.0f);
             _rotation.y += lookDelta.x;
             _transform.localRotation = Quaternion.Euler(_rotation);
 
