@@ -27,6 +27,16 @@ namespace Marsh
             _shader.SetBuffer(_index, name, buffer);
         }
 
+        public void SetInt(string name, int v)
+        {
+            _shader.SetInt(name, v);
+        }
+
+        public void SetFloat(string name, float v)
+        {
+            _shader.SetFloat(name, v);
+        }
+
         public void SetFloat3(string name, float3 v)
         {
             _shader.SetFloats(name, v.x, v.y, v.z);
