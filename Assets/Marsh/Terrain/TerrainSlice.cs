@@ -129,18 +129,18 @@ namespace Marsh
             _meshSizeCalculator.SetBuffer("_voxels", _voxels);
             _meshSizeCalculator.DispatchDivByThreadGroupSize(Width, Height, Width);
             ComputeBuffer.CopyCount(_voxels, _meshTriangleCountReceiver, 0);
-            AsyncGPUReadback.Request(_meshTriangleCountReceiver, (request) =>
+            AsyncGPUReadback.Request(_meshTriangleCountReceiver, (triangleCountRequest) =>
             {
-                var triangleCount = request.GetData<int>()[0];
+                var triangleCount = triangleCountRequest.GetData<int>()[0];
                 var triangles = new ComputeBuffer(triangleCount, sizeof(float) * 3 * 3, ComputeBufferType.Structured);
                 _voxels.SetCounterValue(0);
                 _meshGenerator.SetBuffer("_voxels", _voxels);
                 _meshGenerator.SetBuffer("_meshTriangles", triangles);
                 _meshGenerator.DispatchDivByThreadGroupSize(Width, Height, Width);
-                AsyncGPUReadback.Request(triangles, (req) =>
+                AsyncGPUReadback.Request(triangles, (trianglesRequest) =>
                 {
                     var mesh = new Mesh();
-                    mesh.SetVertices(req.GetData<Vector3>());
+                    mesh.SetVertices(trianglesRequest.GetData<Vector3>());
                     mesh.SetIndices(_indicesForColliders, 0, triangleCount * 3, MeshTopology.Triangles, 0, false, 0);
                     _pendingBakeJob = new MeshBakeJob(mesh.GetInstanceID()).Schedule();
                     _pendingBakeJobMesh = mesh;
