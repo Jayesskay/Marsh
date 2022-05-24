@@ -11,6 +11,18 @@ namespace Marsh
         [SerializeField] private TerrainSlice _slicePrefab;
         private List<TerrainSlice> _slices = new();
 
+        public void Modify(Vector3 position, float radius, int modification)
+        {
+            foreach (var slice in _slices)
+            {
+                var closestPoint = slice.Bounds.ClosestPoint(position);
+                if (!slice.Dirty && Vector3.Distance(closestPoint, position) < radius)
+                {
+                    slice.Modify(position, radius, modification);
+                }
+            }
+        }
+
         private void OnEnable()
         {
             _transform = transform;
@@ -24,17 +36,6 @@ namespace Marsh
 
                     var slice = Instantiate(_slicePrefab, worldPosition, Quaternion.identity, _transform);
                     _slices.Add(slice);
-                }
-            }
-        }
-
-        public void Modify(Vector3 position, float radius, int modification)
-        {
-            foreach (var slice in _slices)
-            {
-                if (!slice.Dirty && slice.Bounds.Contains(position))
-                {
-                    slice.Modify(position, radius, modification);
                 }
             }
         }
