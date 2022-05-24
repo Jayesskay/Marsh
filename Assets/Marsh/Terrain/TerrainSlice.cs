@@ -118,7 +118,7 @@ namespace Marsh
             if (_meshTriangleCount != 0)
             {
                 _material.SetMatrix("_objToWorld", _transform.localToWorldMatrix);
-                _material.SetBuffer("_meshPositions", _meshTriangles);
+                _material.SetBuffer("_meshTriangles", _meshTriangles);
                 Graphics.DrawProcedural(_material, Bounds, MeshTopology.Triangles, _meshTriangleCount * 3);
             }
         }

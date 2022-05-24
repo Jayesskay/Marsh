@@ -72,7 +72,7 @@ Shader "TerrainSlice"
     HLSLINCLUDE
     #include "Common.hlsl"
     float4x4 _objToWorld;
-    StructuredBuffer<Triangle> _meshPositions;
+    StructuredBuffer<Triangle> _meshTriangles;
     ENDHLSL
 
     SubShader
@@ -156,8 +156,8 @@ Shader "TerrainSlice"
             Varyings VS(uint id : SV_VertexId)
             {
                 Attributes attribs;
-                attribs.positionOS = mul(_objToWorld, float4(_meshPositions[id / 3].abc[id % 3], 1.0f));
-                attribs.normalOS = CalculateNormal(_meshPositions[id / 3]);
+                attribs.positionOS = mul(_objToWorld, float4(_meshTriangles[id / 3].abc[id % 3], 1.0f));
+                attribs.normalOS = CalculateNormal(_meshTriangles[id / 3]);
                 attribs.tangentOS = float4(0.0f, 0.0f, 0.0f, 0.0f);
                 attribs.texcoord = float2(0.0f, 0.0f);
                 return LitPassVertex(attribs);
@@ -205,8 +205,8 @@ Shader "TerrainSlice"
             Varyings VS(uint id : SV_VertexId)
             {
                 Attributes attribs;
-                attribs.positionOS = mul(_objToWorld, float4(_meshPositions[id / 3].abc[id % 3], 1.0f));
-                attribs.normalOS = CalculateNormal(_meshPositions[id / 3]);
+                attribs.positionOS = mul(_objToWorld, float4(_meshTriangles[id / 3].abc[id % 3], 1.0f));
+                attribs.normalOS = CalculateNormal(_meshTriangles[id / 3]);
                 attribs.texcoord = float2(0.0f, 0.0f);
                 return ShadowPassVertex(attribs);
             }
@@ -282,8 +282,8 @@ Shader "TerrainSlice"
             Varyings VS(uint id : SV_VertexId)
             {
                 Attributes attribs;
-                attribs.positionOS = mul(_objToWorld, float4(_meshPositions[id / 3].abc[id % 3], 1.0f));
-                attribs.normalOS = CalculateNormal(_meshPositions[id / 3]);
+                attribs.positionOS = mul(_objToWorld, float4(_meshTriangles[id / 3].abc[id % 3], 1.0f));
+                attribs.normalOS = CalculateNormal(_meshTriangles[id / 3]);
                 attribs.tangentOS = float4(0.0f, 0.0f, 0.0f, 0.0f);
                 attribs.texcoord = float2(0.0f, 0.0f);
                 return LitGBufferPassVertex(attribs);
@@ -324,7 +324,7 @@ Shader "TerrainSlice"
             Varyings VS(uint id : SV_VertexId)
             {
                 Attributes attribs;
-                attribs.position = mul(_objToWorld, float4(_meshPositions[id / 3].abc[id % 3], 1.0f));
+                attribs.position = mul(_objToWorld, float4(_meshTriangles[id / 3].abc[id % 3], 1.0f));
                 attribs.texcoord = float2(0.0f, 0.0f);
                 return DepthOnlyVertex(attribs);
             }
@@ -367,8 +367,8 @@ Shader "TerrainSlice"
             Varyings VS(uint id : SV_VertexId)
             {
                 Attributes attribs;
-                attribs.positionOS = mul(_objToWorld, float4(_meshPositions[id / 3].abc[id % 3], 1.0f));
-                attribs.normal = CalculateNormal(_meshPositions[id / 3]);
+                attribs.positionOS = mul(_objToWorld, float4(_meshTriangles[id / 3].abc[id % 3], 1.0f));
+                attribs.normal = CalculateNormal(_meshTriangles[id / 3]);
                 attribs.tangentOS = float4(0.0f, 0.0f, 0.0f, 0.0f);
                 attribs.texcoord = float2(0.0f, 0.0f);
                 return DepthNormalsVertex(attribs);
