@@ -15,17 +15,10 @@ namespace Marsh
 
         private static readonly int[] _indicesForColliders;
 
-        [SerializeField] private ComputeShader _voxelGenerationShader;
-        private ComputeKernel _voxelGenerator;
-
-        [SerializeField] private ComputeShader _voxelManipulationShader;
-        private ComputeKernel _voxelManipulator;
-
-        [SerializeField] private ComputeShader _meshSizeCalculationShader;
-        private ComputeKernel _meshSizeCalculator;
-
-        [SerializeField] private ComputeShader _meshGenerationShader;
-        private ComputeKernel _meshGenerator;
+        [SerializeField] private ComputeShader _meshGenerator;
+        [SerializeField] private ComputeShader _meshSizeCalculator;
+        [SerializeField] private ComputeShader _voxelGenerator;
+        [SerializeField] private ComputeShader _voxelManipulator;
 
         private Transform _transform;
         private MeshCollider _collider;
@@ -39,17 +32,6 @@ namespace Marsh
         private JobHandle _pendingBakeJob;
         private Mesh _pendingBakeJobMesh;
 
-        public void Modify(Vector3 position, float radius, int modification)
-        {
-            _voxelManipulator.SetFloat3("_slicePosition", _transform.position);
-            _voxelManipulator.SetFloat3("_location", position);
-            _voxelManipulator.SetFloat("_radius", radius);
-            _voxelManipulator.SetInt("_modification", modification);
-            _voxelManipulator.SetBuffer("_voxels", _voxels);
-            _voxelManipulator.DispatchDivByThreadGroupSize(Width, Height, Width);
-            GenerateMesh();
-        }
-
         static TerrainSlice()
         {
             int maxCubeCount = (Width - 1) * (Height - 1) * (Width - 1);
@@ -61,10 +43,20 @@ namespace Marsh
             }
         }
 
+        public void Modify(Vector3 position, float radius, int modification)
+        {
+            _voxelManipulator.SetFloat3("_slicePosition", _transform.position);
+            _voxelManipulator.SetFloat3("_location", position);
+            _voxelManipulator.SetFloat("_radius", radius);
+            _voxelManipulator.SetInt("_modification", modification);
+            _voxelManipulator.SetBuffer(0, "_voxels", _voxels);
+            _voxelManipulator.DispatchDivByThreadGroupSize(Width, Height, Width);
+            GenerateMesh();
+        }
+
         private void OnEnable()
         {
             _pendingBakeJobMesh = null;
-            CreateComputeKernels();
             _transform = transform;
             _collider = GetComponent<MeshCollider>();
             _material = new Material(_sourceMaterial);
@@ -94,14 +86,6 @@ namespace Marsh
             DrawIfMeshExists();
         }
 
-        private void CreateComputeKernels()
-        {
-            _voxelGenerator = new ComputeKernel(_voxelGenerationShader, "CSMain");
-            _voxelManipulator = new ComputeKernel(_voxelManipulationShader, "CSMain");
-            _meshSizeCalculator = new ComputeKernel(_meshSizeCalculationShader, "CSMain");
-            _meshGenerator = new ComputeKernel(_meshGenerationShader, "CSMain");
-        }
-
         private bool ColliderFinishedBaking()
         {
             return _pendingBakeJobMesh != null && _pendingBakeJob.IsCompleted;
@@ -126,7 +110,7 @@ namespace Marsh
         private void GenerateMesh()
         {
             _voxels.SetCounterValue(0);
-            _meshSizeCalculator.SetBuffer("_voxels", _voxels);
+            _meshSizeCalculator.SetBuffer(0, "_voxels", _voxels);
             _meshSizeCalculator.DispatchDivByThreadGroupSize(Width, Height, Width);
             ComputeBuffer.CopyCount(_voxels, _meshTriangleCountReceiver, 0);
             AsyncGPUReadback.Request(_meshTriangleCountReceiver, (triangleCountRequest) =>
@@ -134,8 +118,8 @@ namespace Marsh
                 var triangleCount = triangleCountRequest.GetData<int>()[0];
                 var triangles = new ComputeBuffer(triangleCount, sizeof(float) * 3 * 3, ComputeBufferType.Structured);
                 _voxels.SetCounterValue(0);
-                _meshGenerator.SetBuffer("_voxels", _voxels);
-                _meshGenerator.SetBuffer("_meshTriangles", triangles);
+                _meshGenerator.SetBuffer(0, "_voxels", _voxels);
+                _meshGenerator.SetBuffer(0, "_meshTriangles", triangles);
                 _meshGenerator.DispatchDivByThreadGroupSize(Width, Height, Width);
                 AsyncGPUReadback.Request(triangles, (trianglesRequest) =>
                 {
@@ -153,7 +137,7 @@ namespace Marsh
 
         private void GenerateVoxels()
         {
-            _voxelGenerator.SetBuffer("_voxels", _voxels);
+            _voxelGenerator.SetBuffer(0, "_voxels", _voxels);
             _voxelGenerator.SetFloat3("_worldPosition", _transform.position);
             _voxelGenerator.DispatchDivByThreadGroupSize(Width, Height, Width);
         }
