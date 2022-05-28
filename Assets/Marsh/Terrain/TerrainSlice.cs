@@ -12,14 +12,13 @@ namespace Marsh
         public Bounds Bounds { get; private set; }
         public bool Dirty { get { return _pendingBakeJobMesh != null; } }
 
-        private static readonly int[] _indicesForColliders;
-
         [SerializeField] private ComputeShader _meshGenerator;
         [SerializeField] private ComputeShader _meshSizeCalculator;
         [SerializeField] private ComputeShader _voxelGenerator;
         [SerializeField] private ComputeShader _voxelManipulator;
 
         private Transform _transform;
+        private Mesh _collisionMesh;
         private MeshCollider _collider;
         [SerializeField] private Material _sourceMaterial;
         private Material _material;
@@ -30,17 +29,6 @@ namespace Marsh
 
         private JobHandle _pendingBakeJob;
         private Mesh _pendingBakeJobMesh;
-
-        static TerrainSlice()
-        {
-            int maxCubeCount = (Width - 1) * (Height - 1) * (Width - 1);
-            int maxTriangleCount = maxCubeCount * 5;
-            _indicesForColliders = new int[maxTriangleCount * 3];
-            for (var i = 0; i < _indicesForColliders.Length; i++)
-            {
-                _indicesForColliders[i] = i;
-            }
-        }
 
         public void Modify(Vector3 position, float radius, int modification)
         {
@@ -124,7 +112,7 @@ namespace Marsh
                 {
                     var mesh = new Mesh();
                     mesh.SetVertices(trianglesRequest.GetData<Vector3>());
-                    mesh.SetIndices(_indicesForColliders, 0, triangleCount * 3, MeshTopology.Triangles, 0, false, 0);
+                    mesh.SetIndices(ColliderIndices.Values, 0, triangleCount * 3, MeshTopology.Triangles, 0, false, 0);
                     _pendingBakeJob = new MeshBakeJob(mesh.GetInstanceID()).Schedule();
                     _pendingBakeJobMesh = mesh;
                     _meshTriangles?.Dispose();
