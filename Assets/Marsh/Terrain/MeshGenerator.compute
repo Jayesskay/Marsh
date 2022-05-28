@@ -12,7 +12,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     }
 
     uint triangulationIndex = CalculateTriangulationIndex(_voxels, id);
-    for (uint i = 0;; i++)
+    for (uint i = 0;; i += 3)
     {
         int indices[] =
         {
@@ -21,7 +21,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
             TRIANGULATION_TABLE[triangulationIndex][i + 0],
         };
 
-        if (indices[0] == -1)
+        if (indices[2] == -1)
         {
             break;
         }
