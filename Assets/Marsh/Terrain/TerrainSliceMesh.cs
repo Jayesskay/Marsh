@@ -23,6 +23,11 @@ namespace Marsh
             AsyncGPUReadback.Request(_triangleCountReceiver, (triangleCountRequest) =>
             {
                 TriangleCount = triangleCountRequest.GetData<int>()[0];
+                if (TriangleCount == 0)
+                {
+                    return;
+                }
+
                 Triangles = new ComputeBuffer(TriangleCount, sizeof(float) * 9, ComputeBufferType.Structured);
                 voxels.SetCounterValue(0);
                 generator.SetBuffer(0, "_voxels", voxels);

@@ -12,6 +12,9 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     float3 voxelPosition = _slicePosition + float3(id.x, id.y, id.z);
     if (distance(voxelPosition, _location) < _radius)
     {
-        _voxels[CalculateVoxelIndex(id)] = _modification;
+        if (voxelPosition.y > 0.0f)
+        {
+            _voxels[CalculateVoxelIndex(id)] = _modification;
+        }
     }
 }

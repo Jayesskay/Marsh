@@ -53,6 +53,15 @@ public partial class @PlayerActions : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""RemoveTerrain"",
+                    ""type"": ""Button"",
+                    ""id"": ""4e3cf8c8-e4c6-470a-ae6c-29789918abfd"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -154,6 +163,17 @@ public partial class @PlayerActions : IInputActionCollection2, IDisposable
                     ""action"": ""Build"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c3defe4f-1bb3-4c4f-b1ea-f2d80efc1093"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RemoveTerrain"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -165,6 +185,7 @@ public partial class @PlayerActions : IInputActionCollection2, IDisposable
         m_Fly_Move = m_Fly.FindAction("Move", throwIfNotFound: true);
         m_Fly_Look = m_Fly.FindAction("Look", throwIfNotFound: true);
         m_Fly_Build = m_Fly.FindAction("Build", throwIfNotFound: true);
+        m_Fly_RemoveTerrain = m_Fly.FindAction("RemoveTerrain", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -227,6 +248,7 @@ public partial class @PlayerActions : IInputActionCollection2, IDisposable
     private readonly InputAction m_Fly_Move;
     private readonly InputAction m_Fly_Look;
     private readonly InputAction m_Fly_Build;
+    private readonly InputAction m_Fly_RemoveTerrain;
     public struct FlyActions
     {
         private @PlayerActions m_Wrapper;
@@ -234,6 +256,7 @@ public partial class @PlayerActions : IInputActionCollection2, IDisposable
         public InputAction @Move => m_Wrapper.m_Fly_Move;
         public InputAction @Look => m_Wrapper.m_Fly_Look;
         public InputAction @Build => m_Wrapper.m_Fly_Build;
+        public InputAction @RemoveTerrain => m_Wrapper.m_Fly_RemoveTerrain;
         public InputActionMap Get() { return m_Wrapper.m_Fly; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -252,6 +275,9 @@ public partial class @PlayerActions : IInputActionCollection2, IDisposable
                 @Build.started -= m_Wrapper.m_FlyActionsCallbackInterface.OnBuild;
                 @Build.performed -= m_Wrapper.m_FlyActionsCallbackInterface.OnBuild;
                 @Build.canceled -= m_Wrapper.m_FlyActionsCallbackInterface.OnBuild;
+                @RemoveTerrain.started -= m_Wrapper.m_FlyActionsCallbackInterface.OnRemoveTerrain;
+                @RemoveTerrain.performed -= m_Wrapper.m_FlyActionsCallbackInterface.OnRemoveTerrain;
+                @RemoveTerrain.canceled -= m_Wrapper.m_FlyActionsCallbackInterface.OnRemoveTerrain;
             }
             m_Wrapper.m_FlyActionsCallbackInterface = instance;
             if (instance != null)
@@ -265,6 +291,9 @@ public partial class @PlayerActions : IInputActionCollection2, IDisposable
                 @Build.started += instance.OnBuild;
                 @Build.performed += instance.OnBuild;
                 @Build.canceled += instance.OnBuild;
+                @RemoveTerrain.started += instance.OnRemoveTerrain;
+                @RemoveTerrain.performed += instance.OnRemoveTerrain;
+                @RemoveTerrain.canceled += instance.OnRemoveTerrain;
             }
         }
     }
@@ -274,5 +303,6 @@ public partial class @PlayerActions : IInputActionCollection2, IDisposable
         void OnMove(InputAction.CallbackContext context);
         void OnLook(InputAction.CallbackContext context);
         void OnBuild(InputAction.CallbackContext context);
+        void OnRemoveTerrain(InputAction.CallbackContext context);
     }
 }

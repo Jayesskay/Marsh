@@ -1,5 +1,3 @@
-using Unity.Jobs;
-using UnityEngine.Rendering;
 using UnityEngine;
 
 namespace Marsh
@@ -17,10 +15,9 @@ namespace Marsh
         [SerializeField] private Material _sourceMaterial;
 
         public Bounds Bounds { get; private set; }
-        public bool Dirty { get; private set; }
 
         private Transform _transform;
-        private MeshCollider _collider;
+        private MeshCollider _meshCollider;
         private Material _material;
         private ComputeBuffer _voxels;
         private TerrainSliceMesh _currentMesh;
@@ -34,30 +31,19 @@ namespace Marsh
             _voxelManipulator.SetInt("_modification", modification);
             _voxelManipulator.SetBuffer(0, "_voxels", _voxels);
             _voxelManipulator.DispatchDivByThreadGroupSize(Width, Height, Width);
-            Dirty = true;
-        }
-
-        public void GenerateVoxels()
-        {
-            _voxelGenerator.SetBuffer(0, "_voxels", _voxels);
-            _voxelGenerator.SetFloat3("_worldPosition", _transform.position);
-            _voxelGenerator.DispatchDivByThreadGroupSize(Width, Height, Width);
-            Dirty = true;
-        }
-
-        public void GenerateMesh()
-        {
-            _updatedMesh = new TerrainSliceMesh(_meshSizeCalculator, _meshGenerator, _voxels);
+            GenerateMesh();
         }
 
         private void OnEnable()
         {
             _transform = transform;
-            _collider = GetComponent<MeshCollider>();
+            _meshCollider = GetComponent<MeshCollider>();
             _material = new Material(_sourceMaterial);
             _voxels = new ComputeBuffer(VoxelCount, sizeof(int), ComputeBufferType.Structured | ComputeBufferType.Counter);
             var sizeVector = new Vector3(Width, Height, Width);
             Bounds = new Bounds(_transform.position + sizeVector * 0.5f, sizeVector);
+            GenerateVoxels();
+            GenerateMesh();
         }
 
         private void OnDisable()
@@ -69,22 +55,40 @@ namespace Marsh
 
         private void Update()
         {
-            if (_updatedMesh != null && _updatedMesh.ColliderIsReady)
-            {
-                if (_currentMesh != null)
-                    _currentMesh.Destroy();
+            SwitchToUpdatedMeshIfReady();
 
-                _currentMesh = _updatedMesh;
-                _updatedMesh = null;
-                _collider.sharedMesh = _currentMesh.CollisionMesh;
-                Dirty = false;
-            }
-
-            if (_currentMesh != null)
+            if (_currentMesh != null && _currentMesh.TriangleCount > 0)
             {
                 _material.SetMatrix("_objToWorld", _transform.localToWorldMatrix);
                 _material.SetBuffer("_meshTriangles", _currentMesh.Triangles);
                 Graphics.DrawProcedural(_material, Bounds, MeshTopology.Triangles, _currentMesh.TriangleCount * 3);
+            }
+        }
+
+        private void GenerateVoxels()
+        {
+            _voxelGenerator.SetBuffer(0, "_voxels", _voxels);
+            _voxelGenerator.SetFloat3("_worldPosition", _transform.position);
+            _voxelGenerator.DispatchDivByThreadGroupSize(Width, Height, Width);
+        }
+
+        private void GenerateMesh()
+        {
+            _updatedMesh?.Destroy();
+            _updatedMesh = new TerrainSliceMesh(_meshSizeCalculator, _meshGenerator, _voxels);
+        }
+
+        private void SwitchToUpdatedMeshIfReady()
+        {
+            if (_updatedMesh == null)
+                return;
+
+            if (_updatedMesh.ColliderIsReady)
+            {
+                _currentMesh?.Destroy();
+                _currentMesh = _updatedMesh;
+                _updatedMesh = null;
+                _meshCollider.sharedMesh = _currentMesh.CollisionMesh;
             }
         }
     }
