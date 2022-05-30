@@ -6,14 +6,8 @@ RWStructuredBuffer<int> _voxels;
 [numthreads(4, 4, 4)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    float4 sphere = float4(16.0f, 5.0f, 16.0f, 8.0f);
     float3 voxelPosition = _worldPosition + float3(id.x, id.y, id.z);
-    if (distance(sphere.xyz, voxelPosition) < sphere.w)
-    {
-        _voxels[CalculateVoxelIndex(id)] = 1;
-    }
-    else
-    {
-        _voxels[CalculateVoxelIndex(id)] = voxelPosition.y > 5.0f ? 0 : 1;
-    }
+    float s = sin(voxelPosition.x * 0.05f) * 8.0f;
+    float c = cos(voxelPosition.z * 0.08f) * 8.0f;
+    _voxels[CalculateVoxelIndex(id)] = (voxelPosition.y + s + c) > 32.0f ? 0 : 1;
 }
